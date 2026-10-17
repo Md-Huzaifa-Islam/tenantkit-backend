@@ -103,14 +103,15 @@ const ACME_PROJECTS = [
   },
 ];
 
-const AUDIT_SAMPLES: Array<{ action: string; targetType: string; meta?: object }> = [
-  { action: 'member.invited', targetType: 'invite' },
-  { action: 'member.joined', targetType: 'membership' },
-  { action: 'member.role_changed', targetType: 'membership', meta: { from: 'MEMBER', to: 'ADMIN' } },
-  { action: 'workspace.updated', targetType: 'workspace', meta: { name: 'Acme Inc' } },
-  { action: 'project.created', targetType: 'project' },
-  { action: 'billing.plan_changed', targetType: 'workspace', meta: { from: 'FREE', to: 'PRO' } },
-  { action: 'member.invite_resent', targetType: 'invite' },
+/** Builds metadata in exactly the shape the real code paths record, so the UI renders it the same way. */
+const AUDIT_SAMPLES: Array<{ action: string; targetType: string; meta: (p: { email: string; project: string }) => object }> = [
+  { action: 'member.invited', targetType: 'invite', meta: (p) => ({ email: p.email, role: 'MEMBER' }) },
+  { action: 'member.joined', targetType: 'membership', meta: (p) => ({ email: p.email, role: 'MEMBER' }) },
+  { action: 'member.role_changed', targetType: 'membership', meta: () => ({ from: 'MEMBER', to: 'ADMIN' }) },
+  { action: 'workspace.updated', targetType: 'workspace', meta: () => ({ name: { from: 'Acme', to: 'Acme Inc' } }) },
+  { action: 'project.created', targetType: 'project', meta: (p) => ({ name: p.project }) },
+  { action: 'billing.plan_changed', targetType: 'workspace', meta: () => ({ from: 'FREE', to: 'PRO', provider: 'mock' }) },
+  { action: 'member.invite_resent', targetType: 'invite', meta: (p) => ({ email: p.email }) },
 ];
 
 async function reset() {
@@ -222,13 +223,14 @@ async function main() {
 
   const auditRows = Array.from({ length: 30 }, (_, i) => {
     const sample = pick(AUDIT_SAMPLES);
+    const person = pick(ACME_PEOPLE);
     return {
       workspaceId: acme.id,
       actorId: pick([acmeUsers[0], acmeUsers[1], acmeUsers[5]]).id,
       action: sample.action,
       targetType: sample.targetType,
       targetId: pick(acmeUsers).id,
-      metadata: sample.meta ?? {},
+      metadata: sample.meta({ email: person.email, project: pick(ACME_PROJECTS).name }),
       ip: `203.0.113.${10 + Math.floor(rand() * 40)}`,
       createdAt: daysAgo(30 - i, 9 + (i % 8)),
     };
@@ -277,8 +279,8 @@ async function main() {
   }
   await prisma.auditLog.createMany({
     data: [
-      { workspaceId: globex.id, actorId: globexOwner.id, action: 'workspace.created', targetType: 'workspace', targetId: globex.id, createdAt: daysAgo(30) },
-      { workspaceId: globex.id, actorId: demo.id, action: 'member.joined', targetType: 'membership', targetId: demo.id, createdAt: daysAgo(25) },
+      { workspaceId: globex.id, actorId: globexOwner.id, action: 'workspace.created', targetType: 'workspace', targetId: globex.id, metadata: { name: 'Globex', slug: 'globex' }, createdAt: daysAgo(30) },
+      { workspaceId: globex.id, actorId: demo.id, action: 'member.joined', targetType: 'membership', targetId: demo.id, metadata: { email: demo.email, role: 'MEMBER' }, createdAt: daysAgo(25) },
     ],
   });
 
