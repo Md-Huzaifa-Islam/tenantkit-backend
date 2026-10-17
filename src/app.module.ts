@@ -8,6 +8,9 @@ import { AuditModule } from './audit/audit.module';
 import { AuthModule } from './auth/auth.module';
 import { HttpExceptionFilter } from './common/http-exception.filter';
 import { EmailModule } from './email/email.module';
+import { MembersModule } from './members/members.module';
+import { StorageModule } from './storage/storage.module';
+import { WorkspacesModule } from './workspaces/workspaces.module';
 import { ConfigModule } from './config/config.module';
 import { env } from './config/env';
 import { HealthController } from './health/health.controller';
@@ -50,6 +53,9 @@ import { PrismaModule } from './prisma/prisma.module';
     EmailModule,
     AuditModule,
     AuthModule,
+    StorageModule,
+    WorkspacesModule,
+    MembersModule,
   ],
   controllers: [HealthController],
   providers: [

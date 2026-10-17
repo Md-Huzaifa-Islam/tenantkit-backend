@@ -2,7 +2,7 @@ import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { AppException } from '../common/app-exception';
-import { IS_PUBLIC } from '../common/decorators';
+import { IS_PUBLIC } from '../common/metadata';
 import type { AppRequest } from '../common/request-context';
 
 interface AccessPayload {

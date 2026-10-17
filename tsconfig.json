@@ -18,7 +18,8 @@
     "strictPropertyInitialization": false,
     "types": [
       "node",
-      "jest"
+      "jest",
+      "multer"
     ]
   },
   "include": [

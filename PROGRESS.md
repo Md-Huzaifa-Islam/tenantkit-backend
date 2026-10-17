@@ -14,3 +14,8 @@
 - Done: `EmailProvider` (mock → `dev_emails`, Resend via HTTP), signup (user + workspace + owner membership + audit in one RLS transaction), login with timing-safe unknown-email path, refresh rotation with family reuse detection (also catches concurrent replays via a conditional update), logout, forgot/reset (hashed, single-use, 1 h, revokes all sessions), email verification (+ resend), global JWT guard with `@Public()`, `/me` and `/me/workspaces`, 10/min/IP throttle on auth routes.
 - Verified: 65 tests passing (23 new auth/rate-limit cases).
 - Next: Phase 4 — workspace guard + RBAC, workspaces, members, invites, isolation suite.
+
+## Phase 4 — Workspaces, members, invites, RBAC (2026-10-17)
+- Done: `@RequirePermission()` (membership check for `X-Workspace-Id` or `:workspaceId`, suspended → 403 `WORKSPACE_SUSPENDED`, permission matrix), `@SuperAdminOnly()`; workspaces create/get (with plan usage)/update/delete/transfer/logo upload (signature-checked PNG/JPEG/WebP ≤ 1 MB; local + S3 storage providers); members list/role change/remove; invites create/list/resend/revoke/preview/accept (magic link, single use, `<workspaceId>.<secret>` tokens); server-side member limit (members + pending invites) with an advisory lock; audit entries for every change.
+- Verified: 115 tests passing — new suites: workspaces (9), members & invites (15), RBAC (11), API isolation (16).
+- Next: Phase 5 — projects & tasks (+ isolation cases for them).

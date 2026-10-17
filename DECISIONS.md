@@ -24,3 +24,10 @@ One line per decision, with the reason.
 - The refresh cookie is `HttpOnly; SameSite=Lax; Path=/api/v1/auth`, so it is only ever sent to the auth endpoints.
 - Unverified users can still sign in (with a banner in the UI); verification is not a hard gate because the spec doesn't require one.
 - `isSuperAdmin` in the access token is only a UI hint; admin routes re-check the database.
+- Plan-limit errors use HTTP 402 with code `PLAN_LIMIT_REACHED` and `{kind, limit, current, plan}` details, so the UI can render a precise upgrade prompt.
+- The member limit counts members plus pending invites, so a Free workspace can't send unlimited invites and exceed its limit on acceptance.
+- Limit checks take a per-workspace advisory transaction lock, so concurrent creates can't race past a limit.
+- Non-members naming a workspace get 403; record ids from another workspace used inside your own get 404 (RLS hides them), which avoids confirming that they exist.
+- Invite acceptance is a true magic link: the invite email proves control of the address, so accepting signs the user in (new users set name + password; their email counts as verified).
+- Admins can manage other admins and members; nobody can change the owner's role, remove the owner or change/remove themselves; ownership moves only via transfer (old owner becomes admin).
+- Logos accept PNG/JPEG/WebP only, verified by file signature (no SVG, to avoid stored XSS).
