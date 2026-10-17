@@ -46,12 +46,12 @@ Companion repo: `tenantkit-frontend`. Legend: `[ ]` pending · `[~]` in progress
 - [x] Read-only impersonation for super admins (spec §3 role table), audited
 
 ### Delivery
-- [ ] README (architecture, isolation guarantee, test summary, demo credentials)
-- [ ] `docs/architecture.md` (mermaid)
+- [x] README (architecture, isolation guarantee, test summary, demo credentials)
+- [x] `docs/architecture.md` (mermaid)
 
 ## Acceptance (spec §13, backend items)
-- [ ] `docker compose up` then `pnpm seed` works with no API keys
-- [ ] All tests green in CI; isolation suite ≥ 15 cases
+- [x] `docker compose up` then `pnpm seed` works with no API keys
+- [x] All tests green in CI; isolation suite ≥ 15 cases (53)
 - [x] API DB role cannot bypass RLS (verified in a test)
 - [x] Plan limits enforced server-side
 - [x] Duplicate Stripe webhook not double-processed
