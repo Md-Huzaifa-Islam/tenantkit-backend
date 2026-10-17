@@ -1,12 +1,14 @@
 import { randomUUID } from 'node:crypto';
 import type { PrismaService, Tx } from '../prisma/prisma.service';
 import type { AuditService } from '../audit/audit.service';
+import { RESERVED_SLUGS } from '../shared';
 import { slugify, slugWithSuffix } from './slug';
 
 /** Picks a free slug: the requested/derived one, or a suffixed variant if taken. */
 export async function availableSlug(prisma: PrismaService | Tx, name: string, requested?: string) {
   const base = requested ?? slugify(name);
-  const taken = await prisma.workspace.findUnique({ where: { slug: base }, select: { id: true } });
+  const reserved = (RESERVED_SLUGS as readonly string[]).includes(base);
+  const taken = reserved || (await prisma.workspace.findUnique({ where: { slug: base }, select: { id: true } }));
   if (!taken) return base;
   if (requested) return null; // an explicitly requested slug must be exact
   for (let i = 0; i < 5; i++) {

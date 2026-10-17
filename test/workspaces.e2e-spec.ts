@@ -39,6 +39,13 @@ describe('workspaces', () => {
       .expect(409);
   });
 
+  it('never derives or accepts a reserved slug', async () => {
+    const owner = await createOwner(server, 'Admin');
+    const ws = await ownerDb.workspace.findUniqueOrThrow({ where: { id: owner.workspaceId } });
+    expect(ws.slug).toMatch(/^admin-[a-f0-9]{6}$/);
+    await as(server, owner).patch(`/workspaces/${owner.workspaceId}`, { slug: 'login' }).expect(400);
+  });
+
   it('returns details with plan usage', async () => {
     const owner = await createOwner(server, 'Usage Co');
     const res = await as(server, owner).get(`/workspaces/${owner.workspaceId}`).expect(200);

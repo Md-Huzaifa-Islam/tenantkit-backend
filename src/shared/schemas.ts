@@ -11,13 +11,20 @@ export const passwordSchema = z
   .regex(/[A-Za-z]/, 'Include at least one letter')
   .regex(/[0-9]/, 'Include at least one number');
 
+/** Top-level web routes; a workspace with one of these slugs would be unreachable. */
+export const RESERVED_SLUGS = [
+  'admin', 'api', 'app', 'billing', 'dev', 'docs', 'forgot', 'invite', 'login', 'logout',
+  'new', 'reset', 'settings', 'signup', 'static', 'uploads', 'verify', 'www',
+] as const;
+
 export const slugSchema = z
   .string()
   .trim()
   .toLowerCase()
   .min(2, 'Slug must be at least 2 characters')
   .max(48)
-  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Use lowercase letters, numbers and single dashes');
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Use lowercase letters, numbers and single dashes')
+  .refine((s) => !(RESERVED_SLUGS as readonly string[]).includes(s), 'This URL is reserved');
 
 // ---------- Auth ----------
 export const signupSchema = z.object({
