@@ -10,3 +10,232 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DATABASE_MIGRATION_URL")
 }
+
+enum Plan {
+  FREE
+  PRO
+  BUSINESS
+}
+
+enum WorkspaceStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum TaskStatus {
+  TODO
+  DOING
+  DONE
+}
+
+model User {
+  id              String    @id @default(uuid()) @db.Uuid
+  email           String    @unique
+  passwordHash    String    @map("password_hash")
+  name            String
+  avatarUrl       String?   @map("avatar_url")
+  emailVerifiedAt DateTime? @map("email_verified_at")
+  isSuperAdmin    Boolean   @default(false) @map("is_super_admin")
+  lastActiveAt    DateTime? @map("last_active_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  memberships         Membership[]
+  refreshTokens       RefreshToken[]
+  passwordResetTokens PasswordResetToken[]
+  verificationTokens  EmailVerificationToken[]
+  invitesSent         Invite[]                 @relation("InvitedBy")
+  projectsCreated     Project[]                @relation("ProjectCreatedBy")
+  tasksAssigned       Task[]                   @relation("TaskAssignee")
+  tasksCreated        Task[]                   @relation("TaskCreatedBy")
+  auditLogs           AuditLog[]
+
+  @@map("users")
+}
+
+model Workspace {
+  id                   String          @id @default(uuid()) @db.Uuid
+  name                 String
+  slug                 String          @unique
+  logoUrl              String?         @map("logo_url")
+  plan                 Plan            @default(FREE)
+  status               WorkspaceStatus @default(ACTIVE)
+  stripeCustomerId     String?         @unique @map("stripe_customer_id")
+  stripeSubscriptionId String?         @unique @map("stripe_subscription_id")
+  currentPeriodEnd     DateTime?       @map("current_period_end")
+  createdAt            DateTime        @default(now()) @map("created_at")
+
+  memberships Membership[]
+  invites     Invite[]
+  projects    Project[]
+  tasks       Task[]
+  auditLogs   AuditLog[]
+
+  @@map("workspaces")
+}
+
+/// RLS: readable by the active workspace or by the member themself; writable only in the active workspace.
+model Membership {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  workspaceId String   @map("workspace_id") @db.Uuid
+  role        Role
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+  @@index([workspaceId])
+  @@map("memberships")
+}
+
+/// RLS: tenant-scoped.
+model Invite {
+  id          String    @id @default(uuid()) @db.Uuid
+  workspaceId String    @map("workspace_id") @db.Uuid
+  email       String
+  role        Role
+  tokenHash   String    @unique @map("token_hash")
+  invitedById String    @map("invited_by_id") @db.Uuid
+  expiresAt   DateTime  @map("expires_at")
+  acceptedAt  DateTime? @map("accepted_at")
+  revokedAt   DateTime? @map("revoked_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  invitedBy User      @relation("InvitedBy", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, email])
+  @@map("invites")
+}
+
+model RefreshToken {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  tokenHash    String    @unique @map("token_hash")
+  /// All tokens descending from one login share a family; reuse of a rotated token revokes the family.
+  familyId     String    @map("family_id") @db.Uuid
+  expiresAt    DateTime  @map("expires_at")
+  revokedAt    DateTime? @map("revoked_at")
+  replacedById String?   @map("replaced_by_id") @db.Uuid
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([familyId])
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_tokens")
+}
+
+model EmailVerificationToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("email_verification_tokens")
+}
+
+/// RLS: tenant-scoped.
+model Project {
+  id          String   @id @default(uuid()) @db.Uuid
+  workspaceId String   @map("workspace_id") @db.Uuid
+  name        String
+  description String   @default("")
+  createdById String   @map("created_by_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy User      @relation("ProjectCreatedBy", fields: [createdById], references: [id])
+  tasks     Task[]
+
+  @@index([workspaceId, createdAt])
+  @@map("projects")
+}
+
+/// RLS: tenant-scoped.
+model Task {
+  id          String     @id @default(uuid()) @db.Uuid
+  workspaceId String     @map("workspace_id") @db.Uuid
+  projectId   String     @map("project_id") @db.Uuid
+  title       String
+  status      TaskStatus @default(TODO)
+  assigneeId  String?    @map("assignee_id") @db.Uuid
+  createdById String     @map("created_by_id") @db.Uuid
+  dueDate     DateTime?  @map("due_date") @db.Date
+  position    Int        @default(0)
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignee  User?     @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  createdBy User      @relation("TaskCreatedBy", fields: [createdById], references: [id])
+
+  @@index([projectId, status, position])
+  @@index([workspaceId])
+  @@map("tasks")
+}
+
+/// RLS: tenant-scoped. The app role may only SELECT and INSERT (append-only).
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  workspaceId String   @map("workspace_id") @db.Uuid
+  actorId     String?  @map("actor_id") @db.Uuid
+  action      String
+  targetType  String?  @map("target_type")
+  targetId    String?  @map("target_id")
+  metadata    Json     @default("{}")
+  ip          String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  actor     User?     @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, createdAt(sort: Desc)])
+  @@index([workspaceId, action])
+  @@map("audit_logs")
+}
+
+model StripeEvent {
+  /// The Stripe event id; the primary key makes webhook processing idempotent.
+  id          String   @id
+  type        String
+  processedAt DateTime @default(now()) @map("processed_at")
+
+  @@map("stripe_events")
+}
+
+model DevEmail {
+  id        String   @id @default(uuid()) @db.Uuid
+  to        String
+  subject   String
+  html      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt(sort: Desc)])
+  @@map("dev_emails")
+}

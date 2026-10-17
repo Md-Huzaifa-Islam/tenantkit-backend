@@ -18,10 +18,10 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:migrate:dev": "prisma migrate dev",
-    "seed": "node dist/seed/seed.js",
-    "seed:dev": "ts-node --transpile-only src/seed/seed.ts",
+    "seed": "docker compose exec api node dist/seed/seed.js",
     "postinstall": "prisma generate",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "seed:local": "ts-node --transpile-only src/seed/seed.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.700.0",

@@ -12,3 +12,11 @@ One line per decision, with the reason.
 - Docker images use `node:24-bookworm-slim` + corepack pnpm: glibc avoids musl issues with argon2 and Prisma engines.
 - Host Postgres port defaults to 5433 to avoid clashing with a locally installed Postgres on 5432.
 - Tests run against a separate `tenantkit_test` database on the compose Postgres (created automatically by Jest global setup).
+- Added `EmailVerificationToken` and `Task.createdById` to the spec's data model: verification needs a stored token, and "members CRUD their own tasks" needs to know who created a task.
+- "Own task" = created by or assigned to the member.
+- Members can view all projects in their workspace: the spec's data model has no per-project membership table.
+- RLS is FORCED on tenant tables, so even the table owner is subject to policies (only superusers bypass, and the API never uses one).
+- The super-admin panel reads cross-tenant counts through a single `SECURITY DEFINER` function that returns aggregates only, instead of granting the app role any bypass.
+- The audit log is append-only for the app role (UPDATE/DELETE revoked).
+- Invite tokens are `<workspaceId>.<secret>`; only the SHA-256 of the secret is stored. The workspace prefix lets the API set the RLS context before looking the invite up.
+- The seed truncates all tables first: re-running it always produces the same demo state.

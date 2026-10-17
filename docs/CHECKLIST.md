@@ -13,11 +13,11 @@ Companion repo: `tenantkit-frontend`. Legend: `[ ]` pending · `[~]` in progress
 - [x] GitHub Actions CI (lint, typecheck, test with Postgres, build, Docker build)
 
 ### Phase 2 — Database
-- [ ] Prisma schema (all spec §5 models)
-- [ ] Migration with RLS policies (Project, Task, AuditLog, Invite, Membership)
-- [ ] Restricted `tenantkit_app` role (no superuser, no BYPASSRLS, not owner)
-- [ ] Tenant transaction helper (`set_config('app.workspace_id', …, true)`)
-- [ ] Seed script (spec §9)
+- [x] Prisma schema (all spec §5 models)
+- [x] Migration with RLS policies (Project, Task, AuditLog, Invite, Membership)
+- [x] Restricted `tenantkit_app` role (no superuser, no BYPASSRLS, not owner)
+- [x] Tenant transaction helper (`set_config('app.workspace_id', …, true)`)
+- [x] Seed script (spec §9)
 
 ### Phase 3 — Auth
 - [ ] signup (+ first workspace), login, logout, refresh, forgot, reset, verify
@@ -50,7 +50,7 @@ Companion repo: `tenantkit-frontend`. Legend: `[ ]` pending · `[~]` in progress
 ## Acceptance (spec §13, backend items)
 - [ ] `docker compose up` then `pnpm seed` works with no API keys
 - [ ] All tests green in CI; isolation suite ≥ 15 cases
-- [ ] API DB role cannot bypass RLS (verified in a test)
+- [x] API DB role cannot bypass RLS (verified in a test)
 - [ ] Plan limits enforced server-side
 - [ ] Duplicate Stripe webhook not double-processed
 - [ ] Audit log covers every membership, role, billing and settings change
