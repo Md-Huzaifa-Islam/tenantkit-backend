@@ -19,3 +19,8 @@
 - Done: `@RequirePermission()` (membership check for `X-Workspace-Id` or `:workspaceId`, suspended → 403 `WORKSPACE_SUSPENDED`, permission matrix), `@SuperAdminOnly()`; workspaces create/get (with plan usage)/update/delete/transfer/logo upload (signature-checked PNG/JPEG/WebP ≤ 1 MB; local + S3 storage providers); members list/role change/remove; invites create/list/resend/revoke/preview/accept (magic link, single use, `<workspaceId>.<secret>` tokens); server-side member limit (members + pending invites) with an advisory lock; audit entries for every change.
 - Verified: 115 tests passing — new suites: workspaces (9), members & invites (15), RBAC (11), API isolation (16).
 - Next: Phase 5 — projects & tasks (+ isolation cases for them).
+
+## Phase 5 — Projects & Tasks (2026-10-17)
+- Done: projects CRUD (with per-status task counts), project plan limit, tasks CRUD with column positions, "own task" rule for members (creator or assignee), assignee must be a workspace member, Kanban reorder endpoint (rewrites positions; cross-column moves need edit rights).
+- Verified: 142 tests passing — projects suite (14, incl. a parallel-request race against the Free limit: exactly 3 of 6 succeed) and 13 new API isolation cases.
+- Next: Phase 6 — billing providers, webhooks, plan changes.

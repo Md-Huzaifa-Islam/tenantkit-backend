@@ -17,6 +17,8 @@ describe('tenant isolation (API layer)', () => {
   let b: Actor;
   let bMember: Actor;
   let bInviteId: string;
+  let bProjectId: string;
+  let bTaskId: string;
 
   beforeAll(async () => {
     await resetDb();
@@ -27,6 +29,10 @@ describe('tenant isolation (API layer)', () => {
     bMember = await addMember(server, b.workspaceId, 'MEMBER');
     const inv = await as(server, b).post(`/workspaces/${b.workspaceId}/invites`, { email: uniqueEmail(), role: 'MEMBER' }).expect(201);
     bInviteId = inv.body.id;
+    const p = await as(server, b).post('/projects', { name: 'Secret roadmap' }).expect(201);
+    bProjectId = p.body.id;
+    const t = await as(server, b).post(`/projects/${bProjectId}/tasks`, { title: 'Secret task' }).expect(201);
+    bTaskId = t.body.id;
   });
   afterAll(closeApp);
 
@@ -42,6 +48,9 @@ describe('tenant isolation (API layer)', () => {
       ['list invites', () => as(server, a, bWs()).get(`/workspaces/${bWs()}/invites`)],
       ['create invite', () => as(server, a, bWs()).post(`/workspaces/${bWs()}/invites`, { email: uniqueEmail(), role: 'ADMIN' })],
       ['change role via header', () => as(server, a, bWs()).patch(`/members/${bMember.membershipId}`, { role: 'ADMIN' })],
+      ['list projects', () => as(server, a, bWs()).get('/projects')],
+      ['create project', () => as(server, a, bWs()).post('/projects', { name: 'planted' })],
+      ['list tasks', () => as(server, a, bWs()).get(`/projects/${bProjectId}/tasks`)],
     ])('%s → 403', async (_label, call) => {
       const res = await call().expect(403);
       expect(res.body.error.code).toBe('FORBIDDEN');
@@ -73,6 +82,48 @@ describe('tenant isolation (API layer)', () => {
       await as(server, a).delete(`/invites/${bInviteId}`).expect(404);
     });
 
+    it('read a project of workspace 2 → 404', async () => {
+      await as(server, a).get(`/projects/${bProjectId}`).expect(404);
+    });
+
+    it('update a project of workspace 2 → 404', async () => {
+      await as(server, a).patch(`/projects/${bProjectId}`, { name: 'pwned' }).expect(404);
+    });
+
+    it('delete a project of workspace 2 → 404', async () => {
+      await as(server, a).delete(`/projects/${bProjectId}`).expect(404);
+    });
+
+    it('list tasks of a workspace 2 project → 404', async () => {
+      await as(server, a).get(`/projects/${bProjectId}/tasks`).expect(404);
+    });
+
+    it('add a task to a workspace 2 project → 404', async () => {
+      await as(server, a).post(`/projects/${bProjectId}/tasks`, { title: 'planted' }).expect(404);
+    });
+
+    it('update a task of workspace 2 → 404', async () => {
+      await as(server, a).patch(`/tasks/${bTaskId}`, { title: 'pwned' }).expect(404);
+    });
+
+    it('delete a task of workspace 2 → 404', async () => {
+      await as(server, a).delete(`/tasks/${bTaskId}`).expect(404);
+    });
+
+    it('reorder workspace 2 tasks → 404', async () => {
+      await as(server, a).post('/tasks/reorder', { projectId: bProjectId, columns: [{ status: 'DONE', taskIds: [bTaskId] }] }).expect(404);
+    });
+
+    it('reorder workspace 2 tasks inside your own project → 404', async () => {
+      const own = await as(server, a).post('/projects', { name: 'Mine' }).expect(201);
+      await as(server, a).post('/tasks/reorder', { projectId: own.body.id, columns: [{ status: 'DONE', taskIds: [bTaskId] }] }).expect(404);
+    });
+
+    it('assign a workspace 2 user to your task → 400', async () => {
+      const own = await as(server, a).post('/projects', { name: 'Mine 2' }).expect(201);
+      await as(server, a).post(`/projects/${own.body.id}/tasks`, { title: 'x', assigneeId: bMember.userId }).expect(400);
+    });
+
     it('transfer ownership to a member of workspace 2 → 404', async () => {
       await as(server, a).post(`/workspaces/${a.workspaceId}/transfer`, { userId: bMember.userId }).expect(404);
     });
@@ -85,6 +136,11 @@ describe('tenant isolation (API layer)', () => {
     expect(ws.invites).toHaveLength(1);
     expect(ws.invites[0].revokedAt).toBeNull();
     expect(await ownerDb.devEmail.count({ where: { to: ws.invites[0].email } })).toBe(1); // no resend
+    const project = await ownerDb.project.findUniqueOrThrow({ where: { id: bProjectId } });
+    const task = await ownerDb.task.findUniqueOrThrow({ where: { id: bTaskId } });
+    expect(project.name).toBe('Secret roadmap');
+    expect(task).toMatchObject({ title: 'Secret task', status: 'TODO' });
+    expect(await ownerDb.project.count({ where: { workspaceId: bWs() } })).toBe(1);
   });
 
   it('the workspace switcher lists only your own workspaces', async () => {

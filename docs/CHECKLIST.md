@@ -29,10 +29,10 @@ Companion repo: `tenantkit-frontend`. Legend: `[ ]` pending · `[~]` in progress
 - [x] Permission matrix + `@RequirePermission()` guard, `X-Workspace-Id`, suspended → 403
 - [x] Workspaces CRUD, transfer, logo upload (local + S3 providers)
 - [x] Members + invites (create/list/resend/revoke/accept)
-- [~] Tenant isolation suite (≥ 15 cases, API + raw RLS) and RBAC tests — 20 DB + 16 API cases so far; projects/tasks/audit cases added with those endpoints
+- [~] Tenant isolation suite (≥ 15 cases, API + raw RLS) and RBAC tests — 20 DB + 29 API cases so far; audit-log cases added in phase 7
 
 ### Phase 5 — Projects & Tasks
-- [ ] CRUD + reorder, tests
+- [x] CRUD + reorder, tests
 
 ### Phase 6 — Billing
 - [ ] `BillingProvider` (mock + Stripe), checkout/portal/status/webhook

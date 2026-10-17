@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { HttpExceptionFilter } from './common/http-exception.filter';
 import { EmailModule } from './email/email.module';
 import { MembersModule } from './members/members.module';
+import { ProjectsModule } from './projects/projects.module';
 import { StorageModule } from './storage/storage.module';
 import { WorkspacesModule } from './workspaces/workspaces.module';
 import { ConfigModule } from './config/config.module';
@@ -56,6 +57,7 @@ import { PrismaModule } from './prisma/prisma.module';
     StorageModule,
     WorkspacesModule,
     MembersModule,
+    ProjectsModule,
   ],
   controllers: [HealthController],
   providers: [
