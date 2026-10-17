@@ -1,0 +1,58 @@
+name: tenantkit-backend
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tenantkit}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tenantkit}
+      POSTGRES_DB: ${POSTGRES_DB:-tenantkit}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:-tenantkit_app}
+    ports:
+      - '${POSTGRES_PORT:-5433}:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    image: tenantkit-api:local
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      # Restricted role: subject to row-level security.
+      DATABASE_URL: postgresql://tenantkit_app:${APP_DB_PASSWORD:-tenantkit_app}@postgres:5432/${POSTGRES_DB:-tenantkit}
+      # Schema owner: migrations and seeding only.
+      DATABASE_MIGRATION_URL: postgresql://${POSTGRES_USER:-tenantkit}:${POSTGRES_PASSWORD:-tenantkit}@postgres:5432/${POSTGRES_DB:-tenantkit}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-dev-only-insecure-secret-change-me-0123456789}
+      APP_URL: ${APP_URL:-http://localhost:3000}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      ENABLE_DEV_MAILBOX: ${ENABLE_DEV_MAILBOX:-true}
+    ports:
+      - '${API_PORT:-4000}:4000'
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      default:
+        aliases: [api]
+
+volumes:
+  pgdata:
+  uploads:
+
+networks:
+  # Named so the separately-managed frontend compose project can join it.
+  default:
+    name: tenantkit-net
