@@ -51,6 +51,9 @@ describe('tenant isolation (API layer)', () => {
       ['list projects', () => as(server, a, bWs()).get('/projects')],
       ['create project', () => as(server, a, bWs()).post('/projects', { name: 'planted' })],
       ['list tasks', () => as(server, a, bWs()).get(`/projects/${bProjectId}/tasks`)],
+      ['read audit log', () => as(server, a, bWs()).get('/audit-logs')],
+      ['billing status', () => as(server, a, bWs()).get('/billing/status')],
+      ['start checkout', () => as(server, a, bWs()).post('/billing/checkout', { plan: 'BUSINESS' })],
     ])('%s → 403', async (_label, call) => {
       const res = await call().expect(403);
       expect(res.body.error.code).toBe('FORBIDDEN');
@@ -141,6 +144,14 @@ describe('tenant isolation (API layer)', () => {
     expect(project.name).toBe('Secret roadmap');
     expect(task).toMatchObject({ title: 'Secret task', status: 'TODO' });
     expect(await ownerDb.project.count({ where: { workspaceId: bWs() } })).toBe(1);
+  });
+
+  it('your own audit log contains nothing from workspace 2', async () => {
+    const res = await as(server, a).get('/audit-logs?pageSize=100').expect(200);
+    const targets = res.body.items.map((i: { targetId: string }) => i.targetId);
+    expect(targets).not.toContain(bProjectId);
+    expect(targets).not.toContain(bWs());
+    expect(await ownerDb.auditLog.count({ where: { workspaceId: a.workspaceId } })).toBe(res.body.total);
   });
 
   it('the workspace switcher lists only your own workspaces', async () => {

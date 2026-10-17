@@ -17,7 +17,7 @@ export class MeController {
   async me(@CurrentUser() auth: AuthUser) {
     const user = await this.prisma.user.findUnique({ where: { id: auth.id } });
     if (!user) throw AppException.unauthenticated();
-    return toPublicUser(user);
+    return { ...toPublicUser(user), readOnly: auth.readOnly === true, impersonatorId: auth.impersonatorId ?? null };
   }
 
   /** Workspaces the user belongs to, with their role and permissions (for the switcher). */

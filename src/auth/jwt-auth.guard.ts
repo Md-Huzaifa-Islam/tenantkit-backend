@@ -9,7 +9,12 @@ interface AccessPayload {
   sub: string;
   email: string;
   sa?: boolean;
+  /** Present on read-only impersonation tokens: the super admin's user id. */
+  imp?: string;
+  ro?: boolean;
 }
+
+const READ_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 
 /** Global guard: every route needs a valid Bearer access token unless marked `@Public()`. */
 @Injectable()
@@ -31,10 +36,19 @@ export class JwtAuthGuard implements CanActivate {
     if (!header?.startsWith('Bearer ')) throw AppException.unauthenticated();
     try {
       const payload = this.jwt.verify<AccessPayload>(header.slice(7));
-      req.user = { id: payload.sub, email: payload.email, isSuperAdmin: payload.sa === true };
-      return true;
+      req.user = {
+        id: payload.sub,
+        email: payload.email,
+        isSuperAdmin: payload.sa === true,
+        impersonatorId: payload.imp,
+        readOnly: payload.ro === true,
+      };
     } catch {
       throw AppException.unauthenticated('Access token is invalid or expired');
     }
+    if (req.user.readOnly && !READ_METHODS.has(req.method)) {
+      throw AppException.forbidden('This is a read-only impersonation session');
+    }
+    return true;
   }
 }

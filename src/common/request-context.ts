@@ -6,6 +6,9 @@ export interface AuthUser {
   id: string;
   email: string;
   isSuperAdmin: boolean;
+  /** Set when a super admin is viewing as this user (read-only). */
+  impersonatorId?: string;
+  readOnly?: boolean;
 }
 
 /** Set by the workspace guard after verifying membership of `X-Workspace-Id`. */

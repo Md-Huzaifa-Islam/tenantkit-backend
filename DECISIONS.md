@@ -38,3 +38,8 @@ One line per decision, with the reason.
 - Downgrading keeps existing data; limits only block new projects/members.
 - Plan changes for an existing subscription go through the portal; a second checkout is refused (409).
 - The mock checkout uses deterministic event ids per session, so double-clicking "Pay" is a duplicate rather than a second upgrade.
+- Super-admin "impersonate (read-only)" from the spec's role table is a 15-minute access token for the workspace owner carrying `ro: true` and the admin's id; the JWT guard rejects all non-GET requests, no refresh token is issued, and each session is written to that workspace's audit log, so the customer can see it.
+- Admin workspace listings get counts and the owner id only through the SECURITY DEFINER aggregate; user names/emails come from the non-tenant `users` table.
+- MRR is computed from the plan stored on each active workspace, which the mock or Stripe webhooks keep in sync.
+- `/dev/mailbox` is public (so invite/reset flows can be demoed logged-out) but returns 404 unless `ENABLE_DEV_MAILBOX` is on; it defaults to off when `NODE_ENV=production`.
+- Audit-log `action` filter accepts an exact action or a `prefix.*` wildcard (e.g. `member.*`).

@@ -29,7 +29,7 @@ Companion repo: `tenantkit-frontend`. Legend: `[ ]` pending · `[~]` in progress
 - [x] Permission matrix + `@RequirePermission()` guard, `X-Workspace-Id`, suspended → 403
 - [x] Workspaces CRUD, transfer, logo upload (local + S3 providers)
 - [x] Members + invites (create/list/resend/revoke/accept)
-- [~] Tenant isolation suite (≥ 15 cases, API + raw RLS) and RBAC tests — 20 DB + 29 API cases so far; audit-log cases added in phase 7
+- [x] Tenant isolation suite (≥ 15 cases, API + raw RLS) and RBAC tests — 20 DB-layer + 33 API-layer cases
 
 ### Phase 5 — Projects & Tasks
 - [x] CRUD + reorder, tests
@@ -39,9 +39,11 @@ Companion repo: `tenantkit-frontend`. Legend: `[ ]` pending · `[~]` in progress
 - [x] Idempotent webhook (StripeEvent), plan limits, tests
 
 ### Phase 7 — Audit log, admin, dev mailbox
-- [ ] Audit entries for membership/role/billing/settings changes; filterable endpoint
-- [ ] Admin workspaces list, suspend, metrics
-- [ ] Dev mailbox endpoint
+- [x] Audit entries for membership/role/billing/settings changes; filterable endpoint
+- [x] Admin workspaces list, suspend, metrics
+- [x] Dev mailbox endpoint
+
+- [x] Read-only impersonation for super admins (spec §3 role table), audited
 
 ### Delivery
 - [ ] README (architecture, isolation guarantee, test summary, demo credentials)
@@ -53,5 +55,5 @@ Companion repo: `tenantkit-frontend`. Legend: `[ ]` pending · `[~]` in progress
 - [x] API DB role cannot bypass RLS (verified in a test)
 - [x] Plan limits enforced server-side
 - [x] Duplicate Stripe webhook not double-processed
-- [ ] Audit log covers every membership, role, billing and settings change
+- [x] Audit log covers every membership, role, billing and settings change
 - [x] OpenAPI docs at `/api/docs`

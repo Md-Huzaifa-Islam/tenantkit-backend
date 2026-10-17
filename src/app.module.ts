@@ -4,10 +4,12 @@ import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 import { ZodValidationPipe } from 'nestjs-zod';
+import { AdminModule } from './admin/admin.module';
 import { AuditModule } from './audit/audit.module';
 import { AuthModule } from './auth/auth.module';
 import { BillingModule } from './billing/billing.module';
 import { HttpExceptionFilter } from './common/http-exception.filter';
+import { DevModule } from './dev/dev.module';
 import { EmailModule } from './email/email.module';
 import { MembersModule } from './members/members.module';
 import { ProjectsModule } from './projects/projects.module';
@@ -60,6 +62,8 @@ import { PrismaModule } from './prisma/prisma.module';
     MembersModule,
     ProjectsModule,
     BillingModule,
+    AdminModule,
+    DevModule,
   ],
   controllers: [HealthController],
   providers: [

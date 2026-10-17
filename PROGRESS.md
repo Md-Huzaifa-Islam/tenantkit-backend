@@ -30,3 +30,8 @@
 - Verified: 162 tests passing — billing e2e (16, incl. 5 concurrent duplicate deliveries → processed once, tampered signature rejected, upgrade lifts limits, cancel re-applies them) and Stripe provider unit tests (5, real Stripe SDK signatures generated offline).
 - Not verified: calls to the live Stripe API (no keys in this environment). Normalisation and signature checks are tested offline with the Stripe SDK.
 - Next: Phase 7 — audit log endpoint, admin API, dev mailbox.
+
+## Phase 7 — Audit log, admin, dev mailbox (2026-10-17)
+- Done: `GET /audit-logs` (action / `prefix.*` / actor / inclusive date range / pagination, actor details, IP); admin API (`@SuperAdminOnly`, DB re-check): workspace list with search, member/project/task counts and owner via the counts-only SECURITY DEFINER function (new migration adds `owner_id`), suspend/unsuspend (audited), metrics (workspaces by plan/status, MRR, 7-day active users, 30-day signup series), read-only impersonation (15-min token with `ro`, every non-GET rejected by the JWT guard, audited as `workspace.impersonated`); dev mailbox list/get/clear, 404 unless `ENABLE_DEV_MAILBOX`.
+- Verified: 180 tests passing (audit coverage of every membership/role/billing/settings change, filters, admin access control and flows, impersonation read-only enforcement, mailbox enabled/disabled). Isolation suite: 33 API + 20 DB cases.
+- Next: Docker re-verification with seed, then frontend phases 8–10.

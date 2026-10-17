@@ -7,6 +7,7 @@ export const AUDIT_ACTIONS = [
   'workspace.ownership_transferred',
   'workspace.suspended',
   'workspace.unsuspended',
+  'workspace.impersonated',
   'member.invited',
   'member.invite_resent',
   'member.invite_revoked',
