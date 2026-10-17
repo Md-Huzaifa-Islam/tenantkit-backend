@@ -48,6 +48,9 @@ describe('auth', () => {
       expect(cookie).toMatch(/HttpOnly/);
       expect(cookie).toMatch(/Path=\/api\/v1\/auth/);
       expect(cookie).toMatch(/SameSite=Lax/);
+      const hint = (res.headers['set-cookie'] as unknown as string[]).find((c) => c.startsWith('tk_session='))!;
+      expect(hint).toMatch(/^tk_session=1;/);
+      expect(hint).not.toMatch(/HttpOnly/);
     });
 
     it('suffixes the slug when the workspace name is taken', async () => {
