@@ -20,10 +20,10 @@ Companion repo: `tenantkit-frontend`. Legend: `[ ]` pending · `[~]` in progress
 - [x] Seed script (spec §9)
 
 ### Phase 3 — Auth
-- [ ] signup (+ first workspace), login, logout, refresh, forgot, reset, verify
-- [ ] argon2id; JWT access 15 min; rotating refresh cookie with family reuse detection
-- [ ] Hashed, single-use, expiring tokens; rate limit 10/min/IP
-- [ ] Tests
+- [x] signup (+ first workspace), login, logout, refresh, forgot, reset, verify
+- [x] argon2id; JWT access 15 min; rotating refresh cookie with family reuse detection
+- [x] Hashed, single-use, expiring tokens; rate limit 10/min/IP
+- [x] Tests
 
 ### Phase 4 — Workspaces, members, invites, RBAC
 - [ ] Permission matrix + `@RequirePermission()` guard, `X-Workspace-Id`, suspended → 403

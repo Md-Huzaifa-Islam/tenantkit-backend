@@ -4,7 +4,10 @@ import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 import { ZodValidationPipe } from 'nestjs-zod';
+import { AuditModule } from './audit/audit.module';
+import { AuthModule } from './auth/auth.module';
 import { HttpExceptionFilter } from './common/http-exception.filter';
+import { EmailModule } from './email/email.module';
 import { ConfigModule } from './config/config.module';
 import { env } from './config/env';
 import { HealthController } from './health/health.controller';
@@ -44,6 +47,9 @@ import { PrismaModule } from './prisma/prisma.module';
     // Default throttle is generous; auth routes override it with a strict limit.
     ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 600 }]),
     PrismaModule,
+    EmailModule,
+    AuditModule,
+    AuthModule,
   ],
   controllers: [HealthController],
   providers: [

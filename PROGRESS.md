@@ -9,3 +9,8 @@
 - Done: full Prisma schema (spec §5 + `EmailVerificationToken`, `Task.createdById`), init migration, a separate RLS migration (helper functions, grants, `FORCE ROW LEVEL SECURITY`, tenant policies, membership read policy, append-only audit log, `admin_workspace_stats()` SECURITY DEFINER aggregate), `withTenant`/`withUser` transaction helpers, deterministic seed.
 - Verified: 42 tests passing (20 new RLS tests at the DB layer: role is not superuser/bypass/owner, zero rows without context, zero cross-tenant rows for all 5 tables, cross-tenant insert/update/delete/move rejected, audit log append-only, settings don't leak across transactions). `pnpm seed` in the API container creates the §9 demo data.
 - Next: Phase 3 — auth module.
+
+## Phase 3 — Auth (2026-10-17)
+- Done: `EmailProvider` (mock → `dev_emails`, Resend via HTTP), signup (user + workspace + owner membership + audit in one RLS transaction), login with timing-safe unknown-email path, refresh rotation with family reuse detection (also catches concurrent replays via a conditional update), logout, forgot/reset (hashed, single-use, 1 h, revokes all sessions), email verification (+ resend), global JWT guard with `@Public()`, `/me` and `/me/workspaces`, 10/min/IP throttle on auth routes.
+- Verified: 65 tests passing (23 new auth/rate-limit cases).
+- Next: Phase 4 — workspace guard + RBAC, workspaces, members, invites, isolation suite.

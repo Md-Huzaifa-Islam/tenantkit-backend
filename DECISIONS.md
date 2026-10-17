@@ -20,3 +20,7 @@ One line per decision, with the reason.
 - The audit log is append-only for the app role (UPDATE/DELETE revoked).
 - Invite tokens are `<workspaceId>.<secret>`; only the SHA-256 of the secret is stored. The workspace prefix lets the API set the RLS context before looking the invite up.
 - The seed truncates all tables first: re-running it always produces the same demo state.
+- Refresh tokens are strictly single-use: two concurrent refreshes with the same token count as reuse and revoke the family. The web client de-duplicates in-flight refresh calls to avoid self-inflicted logouts.
+- The refresh cookie is `HttpOnly; SameSite=Lax; Path=/api/v1/auth`, so it is only ever sent to the auth endpoints.
+- Unverified users can still sign in (with a banner in the UI); verification is not a hard gate because the spec doesn't require one.
+- `isSuperAdmin` in the access token is only a UI hint; admin routes re-check the database.
