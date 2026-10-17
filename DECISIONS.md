@@ -31,3 +31,10 @@ One line per decision, with the reason.
 - Invite acceptance is a true magic link: the invite email proves control of the address, so accepting signs the user in (new users set name + password; their email counts as verified).
 - Admins can manage other admins and members; nobody can change the owner's role, remove the owner or change/remove themselves; ownership moves only via transfer (old owner becomes admin).
 - Logos accept PNG/JPEG/WebP only, verified by file signature (no SVG, to avoid stored XSS).
+- Billing events are normalised into a provider-neutral `BillingEvent`; the handler never sees Stripe types. This keeps the mock and Stripe paths identical past the provider boundary.
+- Idempotency marker and effects share one transaction (`INSERT … ON CONFLICT DO NOTHING` on `stripe_events`), so duplicates are skipped and failed attempts roll back cleanly for Stripe's retry.
+- The checkout handler doesn't call the Stripe API to fetch the period end; it arrives in the `customer.subscription.updated` event Stripe sends right after checkout. This keeps webhook handling offline-testable.
+- Subscription statuses active/trialing/past_due keep the paid plan; canceled/unpaid/incomplete_expired drop to Free.
+- Downgrading keeps existing data; limits only block new projects/members.
+- Plan changes for an existing subscription go through the portal; a second checkout is refused (409).
+- The mock checkout uses deterministic event ids per session, so double-clicking "Pay" is a duplicate rather than a second upgrade.

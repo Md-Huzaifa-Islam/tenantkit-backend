@@ -24,3 +24,9 @@
 - Done: projects CRUD (with per-status task counts), project plan limit, tasks CRUD with column positions, "own task" rule for members (creator or assignee), assignee must be a workspace member, Kanban reorder endpoint (rewrites positions; cross-column moves need edit rights).
 - Verified: 142 tests passing — projects suite (14, incl. a parallel-request race against the Free limit: exactly 3 of 6 succeed) and 13 new API isolation cases.
 - Next: Phase 6 — billing providers, webhooks, plan changes.
+
+## Phase 6 — Billing (2026-10-17)
+- Done: `BillingProvider` interface; `StripeBillingProvider` (Checkout, Customer Portal, signature-verified webhooks normalised to provider-neutral events for `checkout.session.completed`, `customer.subscription.updated/deleted`, `invoice.payment_failed`); `MockBillingProvider` (HMAC-signed sessions rendered by the web app as mock checkout/portal pages; signed webhooks). One idempotent handler: event id inserted into `stripe_events` in the same transaction as the effects. Plan changes, cancellation → Free, unpaid/canceled status → Free, payment-failed audit + owner email. Billing status endpoint with usage.
+- Verified: 162 tests passing — billing e2e (16, incl. 5 concurrent duplicate deliveries → processed once, tampered signature rejected, upgrade lifts limits, cancel re-applies them) and Stripe provider unit tests (5, real Stripe SDK signatures generated offline).
+- Not verified: calls to the live Stripe API (no keys in this environment). Normalisation and signature checks are tested offline with the Stripe SDK.
+- Next: Phase 7 — audit log endpoint, admin API, dev mailbox.

@@ -6,6 +6,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { AuditModule } from './audit/audit.module';
 import { AuthModule } from './auth/auth.module';
+import { BillingModule } from './billing/billing.module';
 import { HttpExceptionFilter } from './common/http-exception.filter';
 import { EmailModule } from './email/email.module';
 import { MembersModule } from './members/members.module';
@@ -58,6 +59,7 @@ import { PrismaModule } from './prisma/prisma.module';
     WorkspacesModule,
     MembersModule,
     ProjectsModule,
+    BillingModule,
   ],
   controllers: [HealthController],
   providers: [

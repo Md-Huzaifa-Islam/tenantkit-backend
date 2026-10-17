@@ -35,8 +35,8 @@ Companion repo: `tenantkit-frontend`. Legend: `[ ]` pending · `[~]` in progress
 - [x] CRUD + reorder, tests
 
 ### Phase 6 — Billing
-- [ ] `BillingProvider` (mock + Stripe), checkout/portal/status/webhook
-- [ ] Idempotent webhook (StripeEvent), plan limits, tests
+- [x] `BillingProvider` (mock + Stripe), checkout/portal/status/webhook
+- [x] Idempotent webhook (StripeEvent), plan limits, tests
 
 ### Phase 7 — Audit log, admin, dev mailbox
 - [ ] Audit entries for membership/role/billing/settings changes; filterable endpoint
@@ -51,7 +51,7 @@ Companion repo: `tenantkit-frontend`. Legend: `[ ]` pending · `[~]` in progress
 - [ ] `docker compose up` then `pnpm seed` works with no API keys
 - [ ] All tests green in CI; isolation suite ≥ 15 cases
 - [x] API DB role cannot bypass RLS (verified in a test)
-- [ ] Plan limits enforced server-side
-- [ ] Duplicate Stripe webhook not double-processed
+- [x] Plan limits enforced server-side
+- [x] Duplicate Stripe webhook not double-processed
 - [ ] Audit log covers every membership, role, billing and settings change
 - [x] OpenAPI docs at `/api/docs`
