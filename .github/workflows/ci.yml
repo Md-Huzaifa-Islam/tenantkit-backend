@@ -51,3 +51,26 @@ jobs:
           tags: tenantkit-api:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  deploy:
+    # Runs only for pushes to main, after the checks pass. The VPS key is locked to a
+    # forced command in ~deploy/.ssh/authorized_keys (git pull + compose up for this
+    # repo only), so the workflow cannot choose what runs on the server.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [test, docker]
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      - name: Deploy to VPS
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes deploy@"$VPS_HOST"

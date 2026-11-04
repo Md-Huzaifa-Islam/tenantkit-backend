@@ -1,0 +1,9 @@
+# Production override (VPS):
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build --wait
+# Nothing is published on the host. Postgres and the API are reachable only on
+# tenantkit-net, where the web container proxies /api/v1/* to `api:4000`.
+services:
+  postgres:
+    ports: !reset []
+  api:
+    ports: !reset []
